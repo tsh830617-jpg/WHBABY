@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>寶寶日記 🌿</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Noto+Serif+TC:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#F5F0E8; --surface:#FAF7F2; --surface2:#EDE7DA; --line:#DDD5C4; --line2:#C8BDA8;
+    --accent:#7A5230; --accent2:#9B6A40; --accent-bg:#EDE3D5;
+    --text:#2E1F0F; --text-mid:#6B4F35; --text-soft:#A08060;
+    --sage:#6A8860; --sage-bg:#E6EEE2;
+    --clay:#A05030; --clay-bg:#F0E4DC;
+    --sand:#B89050; --sand-bg:#F2E8D0;
+    --stone:#7A7060; --stone-bg:#EAE6E0;
+    
+    --radius:16px; --radius-sm:10px;
+    --tab-h:64px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:var(--tab-h);}
+
+  /* ── HEADER ── */
+  .header{background:var(--surface);border-bottom:1.5px solid var(--line);padding:16px 18px 12px;position:sticky;top:0;z-index:100;}
+  .header-top{display:flex;align-items:center;gap:12px;}
+  .header-icon{width:42px;height:42px;background:var(--accent-bg);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .header-title{font-size:20px;font-weight:700;color:var(--text);font-family:'Noto Serif TC',serif;}
+  .header-date{font-size:11px;color:var(--text-soft);margin-top:1px;}
+
+  /* ── BOTTOM TABS ── */
+  .bottom-nav{position:fixed;bottom:0;left:0;right:0;height:var(--tab-h);background:var(--surface);border-top:1.5px solid var(--line);display:flex;z-index:200;padding-bottom:env(safe-area-inset-bottom);}
+  .tab-btn{flex:1;border:none;background:transparent;font-family:'Noto Sans TC',sans-serif;font-size:10px;color:var(--text-soft);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;transition:all 0.2s;padding:0 4px;}
+  .tab-btn svg{width:22px;height:22px;transition:all 0.2s;}
+  .tab-btn.active{color:var(--accent);}
+  .tab-btn.active svg{stroke:var(--accent);}
+  .tab-btn span{font-weight:500;}
+
+  /* ── PAGES ── */
+  .page{display:none;padding:16px;}
+  .page.active{display:block;animation:fadeIn 0.2s ease;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+  /* ── CARDS ── */
+  .card{background:var(--surface);border-radius:var(--radius);border:1.5px solid var(--line);padding:16px;margin-bottom:12px;}
+  .card-title{font-size:13px;font-weight:500;color:var(--text-mid);margin-bottom:12px;display:flex;align-items:center;gap:6px;}
+  .card-title svg{width:15px;height:15px;flex-shrink:0;}
+
+  /* ── DATE DISPLAY ── */
+  .date-display{text-align:center;padding:4px 0 8px;}
+  .day-name{font-size:12px;color:var(--text-soft);}
+  .date-big{font-size:28px;font-weight:700;color:var(--text);font-family:'Noto Serif TC',serif;line-height:1.15;}
+  .baby-counter{display:flex;gap:10px;margin-top:10px;}
+  .counter-box{flex:1;background:var(--accent-bg);border-radius:var(--radius-sm);padding:11px 8px;text-align:center;}
+  .counter-box .num{font-size:20px;font-weight:700;color:var(--accent);font-family:'Noto Serif TC',serif;}
+  .counter-box .lbl{font-size:10px;color:var(--text-soft);margin-top:2px;}
+
+  /* ── TODAY SUMMARY ── */
+  .summary-chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;}
+  .summary-chip{background:var(--accent-bg);border-radius:20px;padding:4px 11px;font-size:12px;color:var(--accent);display:flex;align-items:center;gap:4px;}
+  .log-item{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);}
+  .log-item:last-child{border-bottom:none;padding-bottom:0;}
+  .log-time{font-size:11px;color:var(--text-soft);min-width:36px;padding-top:2px;}
+  .log-content{flex:1;}
+  .log-title{font-size:13px;font-weight:500;color:var(--text);}
+  .log-detail{font-size:12px;color:var(--text-soft);margin-top:2px;}
+  .log-dot{width:7px;height:7px;border-radius:50%;margin-top:5px;flex-shrink:0;}
+
+  /* ── GOTO RECORD BTN ── */
+  .goto-record-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:12px;border:1.5px dashed var(--line2);border-radius:var(--radius-sm);background:transparent;font-family:'Noto Sans TC',sans-serif;font-size:13px;color:var(--text-mid);cursor:pointer;transition:all 0.15s;margin-top:8px;}
+  .goto-record-btn:hover{background:var(--accent-bg);border-color:var(--accent);color:var(--accent);}
+
+  /* ── FORMS ── */
+  .form-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+  .form-label{font-size:12px;color:var(--text-soft);min-width:58px;flex-shrink:0;}
+  .form-input{flex:1;border:1.5px solid var(--line);border-radius:var(--radius-sm);padding:8px 11px;font-family:'Noto Sans TC',sans-serif;font-size:13px;color:var(--text);background:var(--bg);outline:none;transition:border-color 0.2s;}
+  .form-input:focus{border-color:var(--accent);}
+  select.form-input{cursor:pointer;}
+
+  /* ── BUTTONS ── */
+  .btn{border:none;border-radius:var(--radius-sm);padding:9px 15px;font-family:'Noto Sans TC',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all 0.15s;display:inline-flex;align-items:center;gap:6px;}
+  .btn-primary{background:var(--accent);color:#fff;}
+  .btn-primary:hover{background:var(--text);}
+  .btn-sm{padding:6px 12px;font-size:12px;}
+  .btn-ghost{background:var(--accent-bg);color:var(--accent);}
+  .btn-ghost:hover{background:var(--line);}
+
+  /* ── SECTION LABEL ── */
+  .section-label{font-size:10px;font-weight:500;color:var(--text-soft);text-transform:uppercase;letter-spacing:0.1em;margin:4px 0 10px;display:flex;align-items:center;gap:8px;}
+  .section-label::after{content:'';flex:1;height:1px;background:var(--line);}
+
+  /* ── RECORD SECTION TOGGLE ── */
+  .rec-section{margin-bottom:12px;}
+  .rec-section-header{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;background:var(--surface);border-radius:var(--radius);border:1.5px solid var(--line);cursor:pointer;transition:all 0.15s;}
+  .rec-section-header:hover{background:var(--surface2);}
+  .rec-section-title{font-size:14px;font-weight:500;color:var(--text-mid);display:flex;align-items:center;gap:8px;}
+  .rec-section-chevron{width:18px;height:18px;color:var(--text-soft);transition:transform 0.25s;}
+  .rec-section-body{display:none;background:var(--surface);border:1.5px solid var(--line);border-top:none;border-radius:0 0 var(--radius) var(--radius);padding:14px 16px;}
+  .rec-section.open .rec-section-header{border-radius:var(--radius) var(--radius) 0 0;}
+  .rec-section.open .rec-section-body{display:block;}
+  .rec-section.open .rec-section-chevron{transform:rotate(180deg);}
+
+  /* ── QUICK CC ── */
+  .quick-cc{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0;}
+  .cc-chip{padding:5px 11px;border-radius:20px;background:var(--accent-bg);color:var(--accent);font-size:12px;font-weight:500;border:1.5px solid transparent;cursor:pointer;transition:all 0.15s;}
+  .cc-chip:hover,.cc-chip.selected{background:var(--accent);color:#FAF7F2;}
+
+  /* option chips (milk type, poop shape/amount) */
+  .option-chips{display:flex;gap:6px;flex-wrap:wrap;}
+  .opt-chip{padding:6px 14px;border-radius:20px;background:var(--surface2);color:var(--text-mid);font-size:12px;font-weight:500;border:1.5px solid var(--line);cursor:pointer;transition:all 0.15s;}
+  .opt-chip:hover{background:var(--accent-bg);border-color:var(--accent2);color:var(--accent);}
+  .opt-chip.selected{background:var(--accent);color:#FAF7F2;border-color:var(--accent);}
+
+  /* ── POOP / PERSON SELECTORS ── */
+  .dot-selector{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0;}
+  .color-dot-btn{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;}
+  .color-dot{width:27px;height:27px;border-radius:50%;border:2.5px solid transparent;transition:all 0.15s;}
+  .color-dot-btn.selected .color-dot{border-color:var(--text);transform:scale(1.15);}
+  .color-dot-btn span{font-size:10px;color:var(--text-soft);}
+
+  /* ── PERSON PILL SELECTOR ── */
+  .person-selector{display:flex;gap:8px;margin:6px 0 10px;}
+  .person-pill{flex:1;padding:10px 8px;border-radius:var(--radius-sm);border:1.5px solid var(--line);background:var(--bg);font-family:'Noto Sans TC',sans-serif;font-size:13px;color:var(--text-soft);cursor:pointer;text-align:center;transition:all 0.15s;display:flex;align-items:center;justify-content:center;gap:6px;}
+  .person-pill.selected-mom{background:var(--clay-bg);border-color:var(--clay);color:var(--clay);font-weight:500;}
+  .person-pill.selected-dad{background:var(--sage-bg);border-color:var(--sage);color:var(--sage);font-weight:500;}
+
+  /* ── EXPENSE ── */
+  .expense-filter{display:flex;background:var(--surface2);border-radius:10px;padding:3px;margin-bottom:12px;}
+  .expense-filter button{flex:1;border:none;background:transparent;border-radius:8px;padding:7px;font-family:'Noto Sans TC',sans-serif;font-size:13px;color:var(--text-soft);cursor:pointer;transition:all 0.2s;}
+  .expense-filter button.active{background:var(--surface);color:var(--accent);font-weight:500;}
+  .expense-item{display:flex;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);gap:10px;}
+  .expense-item:last-child{border-bottom:none;}
+  .expense-cat{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+  .expense-info{flex:1;}
+  .expense-name{font-size:13px;font-weight:500;}
+  .expense-date{font-size:11px;color:var(--text-soft);margin-top:1px;}
+  .expense-amount{font-size:14px;font-weight:700;color:var(--accent);}
+
+  /* ── ADD EXPENSE FAB AREA ── */
+  .add-expense-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:13px;border-radius:var(--radius);border:1.5px dashed var(--line2);background:transparent;font-family:'Noto Sans TC',sans-serif;font-size:14px;color:var(--text-mid);cursor:pointer;transition:all 0.2s;margin-bottom:12px;}
+  .add-expense-btn:hover{background:var(--accent-bg);border-color:var(--accent);color:var(--accent);}
+
+  /* ── TREASURY ── */
+  .treasury-card{background:#8A6E68;border-radius:var(--radius);padding:18px;margin-bottom:12px;color:#FAF0EC;position:relative;overflow:hidden;}
+  .treasury-card::before{content:'';position:absolute;top:-25px;right:-25px;width:100px;height:100px;background:rgba(255,255,255,0.05);border-radius:50%;}
+  .treasury-card::after{content:'';position:absolute;bottom:-18px;left:16px;width:65px;height:65px;background:rgba(255,255,255,0.04);border-radius:50%;}
+  .treasury-label{font-size:11px;color:rgba(250,240,236,0.65);letter-spacing:0.08em;margin-bottom:6px;}
+  .treasury-amount{font-size:26px;font-weight:700;font-family:'Noto Serif TC',serif;min-height:34px;color:#FAF0EC;}
+  .treasury-amount.hidden{letter-spacing:0.18em;font-size:20px;color:rgba(250,240,236,0.55);}
+  .treasury-toggle{position:absolute;top:14px;right:14px;background:rgba(255,255,255,0.16);border:none;color:#FAF0EC;padding:5px 12px;border-radius:20px;font-size:12px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:all 0.15s;z-index:1;font-weight:500;}
+  .treasury-toggle:hover{background:rgba(255,255,255,0.26);}
+  .treasury-row{display:flex;gap:10px;margin-top:12px;}
+  .treasury-stat{flex:1;background:rgba(0,0,0,0.18);border-radius:10px;padding:9px;text-align:center;}
+  .treasury-stat .t-num{font-size:14px;font-weight:700;color:#FAF0EC;}
+  .treasury-stat .t-lbl{font-size:10px;color:rgba(250,240,236,0.55);margin-top:2px;}
+  .treasury-add{margin-top:14px;position:relative;z-index:1;}
+  .treasury-person-row{display:flex;gap:8px;margin-bottom:10px;}
+  .treasury-person-pill{flex:1;padding:9px 8px;border-radius:var(--radius-sm);border:1.5px solid rgba(255,255,255,0.2);background:rgba(0,0,0,0.15);color:rgba(250,240,236,0.58);font-family:'Noto Sans TC',sans-serif;font-size:13px;cursor:pointer;text-align:center;transition:all 0.15s;}
+  .treasury-person-pill.selected{background:rgba(255,255,255,0.2);border-color:rgba(255,255,255,0.48);color:#FAF0EC;font-weight:500;}
+  .treasury-input-row{display:flex;gap:8px;}
+  .treasury-input{flex:1;background:rgba(0,0,0,0.18);border:1px solid rgba(255,255,255,0.18);border-radius:var(--radius-sm);padding:9px 12px;color:#FAF0EC;font-family:'Noto Sans TC',sans-serif;font-size:13px;outline:none;}
+  .treasury-input::placeholder{color:rgba(250,240,236,0.38);}
+  .treasury-btn{background:rgba(255,255,255,0.18);border:none;color:#FAF0EC;padding:9px 14px;border-radius:var(--radius-sm);font-family:'Noto Sans TC',sans-serif;font-size:13px;cursor:pointer;white-space:nowrap;transition:all 0.15s;font-weight:500;}
+  .treasury-btn:hover{background:rgba(255,255,255,0.28);}
+
+  /* ── CHART ── */
+  .chart-container{position:relative;width:100%;height:200px;}
+
+  /* ── MEDICAL / MEMO ── */
+  .check-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);}
+  .check-item:last-child{border-bottom:none;}
+  .check-item input[type="checkbox"]{width:17px;height:17px;accent-color:var(--accent);cursor:pointer;flex-shrink:0;}
+  .check-item label{font-size:13px;cursor:pointer;flex:1;}
+  .check-item.done label{text-decoration:line-through;color:var(--text-soft);}
+  .exam-item{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);align-items:flex-start;}
+  .exam-item:last-child{border-bottom:none;}
+  .exam-dot{width:9px;height:9px;border-radius:50%;margin-top:4px;flex-shrink:0;}
+  .exam-name{font-size:13px;font-weight:500;}
+  .exam-date{font-size:12px;color:var(--text-soft);margin-top:2px;}
+  .exam-note{font-size:12px;color:var(--text-mid);margin-top:3px;line-height:1.5;}
+  .memo-textarea{width:100%;min-height:100px;border:1.5px solid var(--line);border-radius:var(--radius-sm);padding:12px;font-family:'Noto Sans TC',sans-serif;font-size:13px;color:var(--text);background:var(--bg);resize:vertical;outline:none;line-height:1.7;transition:border-color 0.2s;}
+  .memo-textarea:focus{border-color:var(--accent);}
+  .memo-note{background:var(--sand-bg);border-left:3px solid var(--sand);border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:12px 14px;margin-bottom:10px;}
+  .memo-note .memo-title{font-size:11px;font-weight:500;color:var(--sand);margin-bottom:4px;}
+  .memo-note .memo-body{font-size:13px;color:var(--text);line-height:1.6;}
+
+  /* ── MODAL ── */
+  .modal-backdrop{display:none;position:fixed;inset:0;background:rgba(20,10,2,0.5);z-index:400;align-items:flex-end;justify-content:center;}
+  .modal-backdrop.open{display:flex;}
+  .modal{background:var(--surface);border-radius:var(--radius) var(--radius) 0 0;padding:20px;width:100%;max-width:500px;max-height:88vh;overflow-y:auto;}
+  .modal-title{font-size:16px;font-weight:700;color:var(--text);margin-bottom:16px;}
+  .modal-handle{width:38px;height:4px;border-radius:2px;background:var(--line);margin:0 auto 16px;}
+
+  /* ── TOAST ── */
+  .toast{position:fixed;top:72px;left:50%;transform:translateX(-50%) translateY(-20px);background:var(--text);color:#FAF7F2;padding:9px 20px;border-radius:20px;font-size:13px;opacity:0;transition:all 0.3s;z-index:600;pointer-events:none;white-space:nowrap;}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  /* ── CALCULATOR ── */
+  .calc-wrap{background:var(--surface2);border-radius:var(--radius);padding:12px;}
+  .calc-display{background:var(--bg);border-radius:var(--radius-sm);padding:11px 14px;margin-bottom:10px;text-align:right;}
+  .calc-expr{font-size:12px;color:var(--text-soft);min-height:16px;margin-bottom:2px;}
+  .calc-num{font-size:26px;font-weight:700;color:var(--text);font-family:'Noto Serif TC',serif;}
+  .calc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
+  .calc-btn{border:none;border-radius:var(--radius-sm);padding:13px 0;font-family:'Noto Sans TC',sans-serif;font-size:15px;font-weight:500;cursor:pointer;transition:all 0.12s;}
+  .calc-btn:active{transform:scale(0.93);}
+  .calc-num-btn{background:var(--surface);color:var(--text);}
+  .calc-num-btn:hover{background:var(--line);}
+  .calc-op-btn{background:var(--accent-bg);color:var(--accent);}
+  .calc-clear-btn{background:var(--clay-bg);color:var(--clay);}
+  .calc-eq-btn{background:var(--accent);color:#fff;}
+  .calc-eq-btn:hover{background:var(--text);}
+  .calc-del-btn{background:var(--stone-bg);color:var(--stone);}
+  .calc-del-btn:hover{background:var(--line2);}
+  .calc-use-btn{background:var(--sage);color:#fff;border-radius:var(--radius-sm);border:none;padding:11px;font-family:'Noto Sans TC',sans-serif;font-size:13px;font-weight:500;cursor:pointer;width:100%;margin-top:8px;transition:all 0.15s;}
+  .calc-use-btn:hover{background:var(--sage-bg);color:var(--sage);}
+</style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-top">
+    <div class="header-icon">
+      <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+        <circle cx="16" cy="17" r="11" stroke="#7A5230" stroke-width="1.8" fill="#EDE3D5"/>
+        <circle cx="5.5" cy="16.5" r="2.8" stroke="#7A5230" stroke-width="1.5" fill="#EDE3D5"/>
+        <circle cx="26.5" cy="16.5" r="2.8" stroke="#7A5230" stroke-width="1.5" fill="#EDE3D5"/>
+        <path d="M10 8.5 Q13 4.5 16 7.5 Q19 4.5 22 8.5" stroke="#7A5230" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+        <circle cx="12.5" cy="16.5" r="1.4" fill="#7A5230"/>
+        <circle cx="19.5" cy="16.5" r="1.4" fill="#7A5230"/>
+        <circle cx="10.5" cy="20.5" r="1.8" fill="#B89050" opacity="0.45"/>
+        <circle cx="21.5" cy="20.5" r="1.8" fill="#B89050" opacity="0.45"/>
+        <path d="M12.5 22 Q16 25 19.5 22" stroke="#7A5230" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div>
+      <div class="header-title">寶寶日記</div>
+      <div class="header-date" id="headerDate"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ PAGE: HOME ═══════════ -->
+<div class="page active" id="page-home">
+  <!-- Date card -->
+  <div class="card">
+    <div class="date-display">
+      <div class="day-name" id="dayName"></div>
+      <div class="date-big" id="dateDisplay"></div>
+    </div>
+    <div class="baby-counter">
+      <div class="counter-box" id="pregnancyBox" style="display:none"><div class="num" id="pregnancyDays">--</div><div class="lbl">懷孕天數</div></div>
+      <div class="counter-box" id="bornBox" style="display:none"><div class="num" id="bornDays">--</div><div class="lbl">寶寶出生第幾天</div></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button class="btn btn-ghost btn-sm" style="flex:1" onclick="openModal('lmpModal')">設定末次月經</button>
+      <button class="btn btn-ghost btn-sm" style="flex:1" onclick="openModal('bornModal')">出生日 ♥</button>
+    </div>
+  </div>
+
+  <!-- Summary card -->
+  <div class="card">
+    <div class="card-title">今日紀錄總覽</div>
+    <div class="summary-chips" id="summaryChips"><div class="summary-chip">尚無紀錄</div></div>
+    <div id="todayLogs"><div style="text-align:center;padding:10px 0;color:var(--text-soft);font-size:13px;">今天還沒有紀錄</div></div>
+    <button class="goto-record-btn" onclick="goToRecord()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+      新增今日紀錄
+    </button>
+  </div>
+</div>
+
+<!-- ═══════════ PAGE: RECORD ═══════════ -->
+<div class="page" id="page-record">
+
+  <!-- MILK -->
+  <div class="rec-section" id="sec-milk">
+    <div class="rec-section-header" onclick="toggleSection('sec-milk')">
+      <div class="rec-section-title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--sage)" stroke-width="1.8" stroke-linecap="round"><path d="M8 2h8l1 4H7z"/><path d="M7 6v12a2 2 0 002 2h6a2 2 0 002-2V6"/><path d="M10 11h4"/></svg>
+        <span>餵奶紀錄</span>
+      </div>
+      <svg class="rec-section-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="rec-section-body">
+      <div class="form-row"><label class="form-label">時間</label><input type="time" class="form-input" id="milkTime"></div>
+      <div class="form-row"><label class="form-label">CC數</label><input type="number" class="form-input" id="milkCC" placeholder="輸入cc數" min="0" max="300"></div>
+      <div class="quick-cc">
+        <div class="cc-chip" onclick="setCC(30,this)">30cc</div>
+        <div class="cc-chip" onclick="setCC(60,this)">60cc</div>
+        <div class="cc-chip" onclick="setCC(90,this)">90cc</div>
+        <div class="cc-chip" onclick="setCC(120,this)">120cc</div>
+        <div class="cc-chip" onclick="setCC(150,this)">150cc</div>
+      </div>
+      <div style="margin-bottom:10px">
+        <div class="form-label" style="margin-bottom:6px">方式</div>
+        <div class="option-chips" id="milkTypePicker">
+          <div class="opt-chip selected" onclick="selectOpt('milkTypePicker',this,'母乳')">母乳</div>
+          <div class="opt-chip" onclick="selectOpt('milkTypePicker',this,'配方奶')">配方奶</div>
+          <div class="opt-chip" onclick="selectOpt('milkTypePicker',this,'混合')">混合</div>
+          <div class="opt-chip" onclick="selectOpt('milkTypePicker',this,'副食品')">副食品</div>
+        </div>
+      </div>
+      <div class="form-row"><label class="form-label">備註</label><input type="text" class="form-input" id="milkNote" placeholder="選填"></div>
+      <button class="btn" style="width:100%;justify-content:center;background:var(--sage);color:#fff" onclick="addMilk()">記錄餵奶</button>
+    </div>
+  </div>
+
+  <!-- POOP -->
+  <div class="rec-section" id="sec-poop">
+    <div class="rec-section-header" onclick="toggleSection('sec-poop')">
+      <div class="rec-section-title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--clay)" stroke-width="1.8" stroke-linecap="round"><path d="M12 2C8 2 5 5 5 8.5c0 2.3 1.2 4.4 3.1 5.5.4.2.9.5.9 1v.5a3 3 0 006 0V15c0-.5.5-.8.9-1C17.8 12.9 19 10.8 19 8.5 19 5 16 2 12 2z"/></svg>
+        <span>便便紀錄</span>
+      </div>
+      <svg class="rec-section-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="rec-section-body">
+      <div class="form-row"><label class="form-label">時間</label><input type="time" class="form-input" id="poopTime"></div>
+      <div style="margin-bottom:10px">
+        <div class="form-label" style="margin-bottom:6px">顏色</div>
+        <div class="dot-selector" id="poopColorPicker">
+          <div class="color-dot-btn" onclick="selectColor(this,'芥黃')"><div class="color-dot" style="background:#C8A030"></div><span>芥黃</span></div>
+          <div class="color-dot-btn" onclick="selectColor(this,'金黃')"><div class="color-dot" style="background:#E8C040"></div><span>金黃</span></div>
+          <div class="color-dot-btn" onclick="selectColor(this,'黃綠')"><div class="color-dot" style="background:#8AAA3A"></div><span>黃綠</span></div>
+          <div class="color-dot-btn" onclick="selectColor(this,'深綠')"><div class="color-dot" style="background:#2E6830"></div><span>深綠</span></div>
+          <div class="color-dot-btn" onclick="selectColor(this,'棕色')"><div class="color-dot" style="background:#7A4828"></div><span>棕色</span></div>
+          <div class="color-dot-btn" onclick="selectColor(this,'橘色')"><div class="color-dot" style="background:#C86030"></div><span>橘色</span></div>
+          <div class="color-dot-btn" onclick="selectColor(this,'黑色')"><div class="color-dot" style="background:#282018"></div><span>黑色</span></div>
+          <div class="color-dot-btn" onclick="selectColor(this,'白灰')"><div class="color-dot" style="background:#B8B0A0;border:1px solid #999"></div><span>白灰</span></div>
+        </div>
+      </div>
+      <div style="margin-bottom:10px">
+        <div class="form-label" style="margin-bottom:6px">形狀</div>
+        <div class="option-chips" id="poopShapePicker">
+          <div class="opt-chip selected" onclick="selectOpt('poopShapePicker',this,'稀水狀')">稀水狀</div>
+          <div class="opt-chip" onclick="selectOpt('poopShapePicker',this,'糊狀')">糊狀</div>
+          <div class="opt-chip" onclick="selectOpt('poopShapePicker',this,'軟便')">軟便</div>
+          <div class="opt-chip" onclick="selectOpt('poopShapePicker',this,'成形')">成形</div>
+          <div class="opt-chip" onclick="selectOpt('poopShapePicker',this,'硬塊')">硬塊</div>
+          <div class="opt-chip" onclick="selectOpt('poopShapePicker',this,'帶血絲')">帶血絲</div>
+        </div>
+      </div>
+      <div style="margin-bottom:10px">
+        <div class="form-label" style="margin-bottom:6px">量</div>
+        <div class="option-chips" id="poopAmountPicker">
+          <div class="opt-chip selected" onclick="selectOpt('poopAmountPicker',this,'少')">少</div>
+          <div class="opt-chip" onclick="selectOpt('poopAmountPicker',this,'中')">中</div>
+          <div class="opt-chip" onclick="selectOpt('poopAmountPicker',this,'多')">多</div>
+        </div>
+      </div>
+      <div class="form-row"><label class="form-label">備註</label><input type="text" class="form-input" id="poopNote" placeholder="選填"></div>
+      <button class="btn" style="width:100%;justify-content:center;background:var(--clay);color:#fff" onclick="addPoop()">記錄便便</button>
+    </div>
+  </div>
+
+  <!-- GROWTH -->
+  <div class="rec-section" id="sec-growth">
+    <div class="rec-section-header" onclick="toggleSection('sec-growth')">
+      <div class="rec-section-title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--stone)" stroke-width="1.8" stroke-linecap="round"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+        <span>成長紀錄</span>
+      </div>
+      <svg class="rec-section-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="rec-section-body">
+      <div class="form-row"><label class="form-label">日期</label><input type="date" class="form-input" id="growthDate"></div>
+      <div class="form-row"><label class="form-label">身高(cm)</label><input type="number" class="form-input" id="growthHeight" placeholder="如 50.5"></div>
+      <div class="form-row"><label class="form-label">體重(kg)</label><input type="number" class="form-input" id="growthWeight" placeholder="如 3.2" step="0.1"></div>
+      <div class="form-row"><label class="form-label">頭圍(cm)</label><input type="number" class="form-input" id="growthHead" placeholder="如 34.0"></div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="addGrowth()">記錄成長</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ PAGE: EXPENSE ═══════════ -->
+<div class="page" id="page-expense">
+
+  <!-- Add expense button -->
+  <button class="add-expense-btn" onclick="openAddExpense()">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+    新增花費
+  </button>
+
+  <!-- Expense summary + chart -->
+  <div class="card">
+    <div class="card-title">花費總覽</div>
+    <div style="display:flex;gap:10px;margin-bottom:12px">
+      <div class="counter-box"><div class="num" style="font-size:16px" id="totalExpense">$0</div><div class="lbl">本月總花費</div></div>
+      <div class="counter-box" style="background:var(--clay-bg)"><div class="num" style="font-size:16px;color:var(--clay)" id="momExpense">$0</div><div class="lbl">媽媽花費</div></div>
+      <div class="counter-box" style="background:var(--sage-bg)"><div class="num" style="font-size:16px;color:var(--sage)" id="dadExpense">$0</div><div class="lbl">爸爸花費</div></div>
+    </div>
+    <div class="chart-container"><canvas id="expenseChart" role="img" aria-label="花費分類圓餅圖">花費圓餅圖</canvas></div>
+    <div id="expenseLegend" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;font-size:12px;color:var(--text-soft)"></div>
+  </div>
+
+  <!-- Filter + List -->
+  <div class="expense-filter">
+    <button class="active" onclick="setExpensePerson('both',this)">全部</button>
+    <button onclick="setExpensePerson('mom',this)">媽媽</button>
+    <button onclick="setExpensePerson('dad',this)">爸爸</button>
+  </div>
+  <div class="card">
+    <div class="card-title">花費明細</div>
+    <div id="expenseList"><div style="text-align:center;padding:14px;color:var(--text-soft);font-size:13px;">尚無花費紀錄</div></div>
+  </div>
+
+  <!-- Treasury at bottom -->
+  <div class="treasury-card">
+    <button class="treasury-toggle" onclick="toggleTreasury()" id="treasuryToggleBtn">顯示</button>
+    <div class="treasury-label">🏦 寶寶金庫</div>
+    <div class="treasury-amount hidden" id="treasuryAmt">● ● ● ● ●</div>
+    <div class="treasury-row">
+      <div class="treasury-stat"><div class="t-num" id="tMom">●●●</div><div class="t-lbl">媽媽存入</div></div>
+      <div class="treasury-stat"><div class="t-num" id="tDad">●●●</div><div class="t-lbl">爸爸存入</div></div>
+      <div class="treasury-stat"><div class="t-num" id="tTimes">0次</div><div class="t-lbl">存款次數</div></div>
+    </div>
+    <div class="treasury-add">
+      <div class="treasury-person-row">
+        <div class="treasury-person-pill selected" id="tpill-mom" onclick="selectTreasuryPerson('mom')">🌸 媽媽</div>
+        <div class="treasury-person-pill" id="tpill-dad" onclick="selectTreasuryPerson('dad')">🌿 爸爸</div>
+      </div>
+      <div class="treasury-input-row">
+        <input type="number" class="treasury-input" id="tAmt" placeholder="存入金額(元)">
+        <button class="treasury-btn" onclick="addToTreasury()">存入 ＋</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- ═══════════ PAGE: MEDICAL ═══════════ -->
+<div class="page" id="page-medical">
+  <div class="card">
+    <div class="card-title">新增檢查紀錄</div>
+    <div class="form-row"><label class="form-label">類型</label><select class="form-input" id="examType"><option value="pregnancy">孕期檢查</option><option value="baby">寶寶檢查</option></select></div>
+    <div class="form-row"><label class="form-label">檢查項目</label><input type="text" class="form-input" id="examName" placeholder="如：第一次產檢"></div>
+    <div class="form-row"><label class="form-label">日期</label><input type="date" class="form-input" id="examDate"></div>
+    <div class="form-row"><label class="form-label">地點</label><input type="text" class="form-input" id="examPlace" placeholder="醫院／診所名稱"></div>
+    <div class="form-row"><label class="form-label">備註</label><input type="text" class="form-input" id="examResult" placeholder="正常、待追蹤等"></div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="addExam()">新增紀錄</button>
+  </div>
+  <div class="card"><div class="section-label">孕期檢查</div><div id="pregnancyExams"><div style="text-align:center;padding:10px;color:var(--text-soft);font-size:13px;">尚無紀錄</div></div></div>
+  <div class="card"><div class="section-label">寶寶檢查</div><div id="babyExams"><div style="text-align:center;padding:10px;color:var(--text-soft);font-size:13px;">尚無紀錄</div></div></div>
+  <div class="card">
+    <div class="card-title">待辦事項</div>
+    <div class="form-row"><input type="text" class="form-input" id="todoInput" placeholder="新增待辦" style="flex:1"><button class="btn btn-ghost btn-sm" onclick="addTodo()">加入</button></div>
+    <div id="todoList">
+      <div class="check-item" id="todo-item-1"><input type="checkbox" id="todo1" onchange="toggleTodo('todo-item-1')"><label for="todo1">預約第一次產檢</label></div>
+      <div class="check-item" id="todo-item-2"><input type="checkbox" id="todo2" onchange="toggleTodo('todo-item-2')"><label for="todo2">辦理媽媽手冊</label></div>
+      <div class="check-item" id="todo-item-3"><input type="checkbox" id="todo3" onchange="toggleTodo('todo-item-3')"><label for="todo3">準備嬰兒推車</label></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ PAGE: MEMO ═══════════ -->
+<div class="page" id="page-memo">
+  <div class="card">
+    <div class="card-title">新增備忘錄</div>
+    <div class="form-row"><label class="form-label">標題</label><input type="text" class="form-input" id="memoTitle" placeholder="備忘錄標題"></div>
+    <div style="margin-bottom:10px"><textarea class="memo-textarea" id="memoContent" placeholder="在這裡記下任何事情..."></textarea></div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="addMemo()">儲存備忘錄</button>
+  </div>
+  <div id="memoList"><div class="memo-note"><div class="memo-title">💡 小提醒</div><div class="memo-body">這裡可以記下孕期的感受、寶寶成長的小故事，或給寶寶的第一封信 ✉️</div></div></div>
+</div>
+
+<!-- ════════════════════ MODALS ════════════════════ -->
+
+<!-- LMP -->
+<div class="modal-backdrop" id="lmpModal">
+  <div class="modal"><div class="modal-handle"></div><div class="modal-title">設定末次月經日期</div>
+    <div class="form-row"><label class="form-label">LMP日期</label><input type="date" class="form-input" id="lmpDate"></div>
+    <div style="display:flex;gap:8px;margin-top:12px"><button class="btn btn-ghost" style="flex:1" onclick="closeModal('lmpModal')">取消</button><button class="btn btn-primary" style="flex:1" onclick="saveLMP()">確認</button></div>
+  </div>
+</div>
+
+<!-- BORN -->
+<div class="modal-backdrop" id="bornModal">
+  <div class="modal"><div class="modal-handle"></div><div class="modal-title">設定寶寶出生日 🌿</div>
+    <div class="form-row"><label class="form-label">出生日期</label><input type="date" class="form-input" id="bornDate"></div>
+    <div class="form-row"><label class="form-label">出生時間</label><input type="time" class="form-input" id="bornTime"></div>
+    <div class="form-row"><label class="form-label">寶寶名字</label><input type="text" class="form-input" id="babyName" placeholder="還沒想好也沒關係 ♥"></div>
+    <div style="display:flex;gap:8px;margin-top:12px"><button class="btn btn-ghost" style="flex:1" onclick="closeModal('bornModal')">取消</button><button class="btn btn-primary" style="flex:1" onclick="saveBorn()">確認</button></div>
+  </div>
+</div>
+
+<!-- ADD EXPENSE MODAL -->
+<div class="modal-backdrop" id="addExpenseModal">
+  <div class="modal"><div class="modal-handle"></div><div class="modal-title">💰 新增花費</div>
+    <div style="margin-bottom:12px">
+      <div class="form-label" style="margin-bottom:8px">誰的花費</div>
+      <div class="person-selector">
+        <div class="person-pill" id="pill-mom" onclick="selectExpensePerson('mom')">🌸 媽媽</div>
+        <div class="person-pill" id="pill-dad" onclick="selectExpensePerson('dad')">🌿 爸爸</div>
+      </div>
+    </div>
+    <div class="form-row"><label class="form-label">類別</label><select class="form-input" id="expenseCat"><option>尿布</option><option>奶粉</option><option>衣物</option><option>玩具</option><option>醫療</option><option>孕期</option><option>食品</option><option>其他</option></select></div>
+    <div class="form-row"><label class="form-label">項目</label><input type="text" class="form-input" id="expenseName" placeholder="如：幫寶適尿布"></div>
+    <div class="form-row">
+      <label class="form-label">金額(元)</label>
+      <input type="number" class="form-input" id="expenseAmt" placeholder="🧮 點此開啟計算機" readonly onclick="openModal('calcModal')" style="cursor:pointer;background:var(--accent-bg)">
+    </div>
+    <div class="form-row"><label class="form-label">日期</label><input type="date" class="form-input" id="expenseDate"></div>
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <button class="btn btn-ghost" style="flex:1" onclick="closeModal('addExpenseModal')">取消</button>
+      <button class="btn btn-primary" style="flex:1" onclick="addExpense()">新增花費</button>
+    </div>
+  </div>
+</div>
+
+<!-- CALCULATOR MODAL -->
+<div class="modal-backdrop" id="calcModal">
+  <div class="modal"><div class="modal-handle"></div><div class="modal-title">🧮 計算機</div>
+    <div class="calc-wrap">
+      <div class="calc-display"><div class="calc-expr" id="calcExpr"></div><div class="calc-num" id="calcNum">0</div></div>
+      <div class="calc-grid">
+        <button class="calc-btn calc-clear-btn" onclick="calcClear()">C</button>
+        <button class="calc-btn calc-op-btn" onclick="calcSign()">+/-</button>
+        <button class="calc-btn calc-op-btn" onclick="calcPercent()">%</button>
+        <button class="calc-btn calc-del-btn" onclick="calcBackspace()">⌫</button>
+        <button class="calc-btn calc-num-btn" onclick="calcNum('7')">7</button>
+        <button class="calc-btn calc-num-btn" onclick="calcNum('8')">8</button>
+        <button class="calc-btn calc-num-btn" onclick="calcNum('9')">9</button>
+        <button class="calc-btn calc-op-btn" onclick="calcOp('/')">÷</button>
+        <button class="calc-btn calc-num-btn" onclick="calcNum('4')">4</button>
+        <button class="calc-btn calc-num-btn" onclick="calcNum('5')">5</button>
+        <button class="calc-btn calc-num-btn" onclick="calcNum('6')">6</button>
+        <button class="calc-btn calc-op-btn" onclick="calcOp('*')">×</button>
+        <button class="calc-btn calc-num-btn" onclick="calcNum('1')">1</button>
+        <button class="calc-btn calc-num-btn" onclick="calcNum('2')">2</button>
+        <button class="calc-btn calc-num-btn" onclick="calcNum('3')">3</button>
+        <button class="calc-btn calc-op-btn" onclick="calcOp('-')">−</button>
+        <button class="calc-btn calc-num-btn" onclick="calcNum('0')" style="grid-column:span 2">0</button>
+        <button class="calc-btn calc-num-btn" onclick="calcDot()">.</button>
+        <button class="calc-btn calc-op-btn" onclick="calcOp('+')">+</button>
+        <button class="calc-btn calc-eq-btn" style="grid-column:span 4;margin-top:2px" onclick="calcEquals()">=</button>
+      </div>
+      <button class="calc-use-btn" onclick="useCalcResult()">使用此金額 → 填入花費</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════ BOTTOM NAV ════════════════════ -->
+<nav class="bottom-nav">
+  <button class="tab-btn active" id="nav-home" onclick="showPage('home',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1z"/><path d="M9 21V12h6v9"/></svg>
+    <span>首頁</span>
+  </button>
+  <button class="tab-btn" id="nav-record" onclick="showPage('record',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+    <span>紀錄</span>
+  </button>
+  <button class="tab-btn" id="nav-expense" onclick="showPage('expense',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+    <span>花費</span>
+  </button>
+  <button class="tab-btn" id="nav-medical" onclick="showPage('medical',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V8z"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9.5" y1="14" x2="14.5" y2="14"/></svg>
+    <span>檢查</span>
+  </button>
+  <button class="tab-btn" id="nav-memo" onclick="showPage('memo',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>
+    <span>備忘錄</span>
+  </button>
+</nav>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+// ── STATE ──
+let state=JSON.parse(localStorage.getItem('babyDiary4')||'{}');
+state.logs=state.logs||[];state.expenses=state.expenses||[];
+state.exams=state.exams||[];state.memos=state.memos||[];
+state.treasury=state.treasury||{total:0,mom:0,dad:0,records:[]};
+function save(){localStorage.setItem('babyDiary4',JSON.stringify(state));}
+
+// ── DATE ──
+const weekDays=['星期日','星期一','星期二','星期三','星期四','星期五','星期六'];
+function initDate(){
+  const now=new Date(),m=now.getMonth()+1,d=now.getDate();
+  document.getElementById('dateDisplay').textContent=now.getFullYear()+'年'+m+'月'+d+'日';
+  document.getElementById('dayName').textContent=weekDays[now.getDay()];
+  document.getElementById('headerDate').textContent=weekDays[now.getDay()]+' · '+m+'月'+d+'日';
+}
+function updateCounters(){
+  const now=new Date();now.setHours(0,0,0,0);
+  if(state.bornDate){
+    const born=new Date(state.bornDate);born.setHours(0,0,0,0);
+    const diff=Math.floor((now-born)/86400000);
+    document.getElementById('bornBox').style.display='';
+    document.getElementById('bornDays').textContent=diff>=0?diff+1:'--';
+    document.getElementById('pregnancyBox').style.display='none';
+  } else if(state.lmpDate){
+    const lmp=new Date(state.lmpDate);lmp.setHours(0,0,0,0);
+    const diff=Math.floor((now-lmp)/86400000);
+    document.getElementById('pregnancyBox').style.display='';
+    document.getElementById('pregnancyDays').textContent=diff>0?diff:'--';
+    document.getElementById('bornBox').style.display='none';
+  }
+}
+
+// ── NAV ──
+function showPage(name,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  btn.classList.add('active');
+  if(name==='expense')setTimeout(renderExpenseChart,50);
+}
+function goToRecord(){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-record').classList.add('active');
+  document.getElementById('nav-record').classList.add('active');
+}
+
+// ── SECTION ACCORDION ──
+function toggleSection(id){
+  document.getElementById(id).classList.toggle('open');
+}
+
+// ── TOAST & MODAL ──
+function showToast(msg){
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2000);
+}
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.modal-backdrop').forEach(b=>
+  b.addEventListener('click',e=>{if(e.target===b)b.classList.remove('open');})
+);
+
+// ── LMP / BORN ──
+function saveLMP(){
+  const v=document.getElementById('lmpDate').value;
+  if(!v){showToast('請選擇日期');return;}
+  state.lmpDate=v;save();updateCounters();closeModal('lmpModal');showToast('✓ 末次月經日期已儲存');
+}
+function saveBorn(){
+  const v=document.getElementById('bornDate').value;
+  if(!v){showToast('請選擇日期');return;}
+  state.bornDate=v;state.bornTime=document.getElementById('bornTime').value;
+  state.babyName=document.getElementById('babyName').value;
+  save();updateCounters();closeModal('bornModal');showToast('🎉 寶寶出生日已儲存！');
+}
+
+// ── RECORD ──
+function setCC(val,el){
+  document.getElementById('milkCC').value=val;
+  document.querySelectorAll('.cc-chip').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+}
+let selectedPoopColor='';
+function selectColor(el,name){
+  document.querySelectorAll('#poopColorPicker .color-dot-btn').forEach(b=>b.classList.remove('selected'));
+  el.classList.add('selected');selectedPoopColor=name;
+}
+function todayStr(){return new Date().toISOString().slice(0,10);}
+function getOptVal(pickerId,def){
+  const sel=document.querySelector('#'+pickerId+' .opt-chip.selected');
+  return sel?sel.textContent:def;
+}
+function selectOpt(pickerId,el,val){
+  document.querySelectorAll('#'+pickerId+' .opt-chip').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+}
+function addMilk(){
+  const time=document.getElementById('milkTime').value||new Date().toTimeString().slice(0,5);
+  const cc=document.getElementById('milkCC').value;
+  if(!cc){showToast('請輸入CC數');return;}
+  state.logs.push({type:'milk',date:todayStr(),time,cc:+cc,milkType:getOptVal('milkTypePicker','母乳'),note:document.getElementById('milkNote').value});
+  save();renderTodayLogs();showToast('🍼 餵奶紀錄已儲存');
+  document.getElementById('milkCC').value='';document.getElementById('milkNote').value='';
+  document.querySelectorAll('.cc-chip').forEach(c=>c.classList.remove('selected'));
+}
+function addPoop(){
+  const time=document.getElementById('poopTime').value||new Date().toTimeString().slice(0,5);
+  state.logs.push({type:'poop',date:todayStr(),time,color:selectedPoopColor||'未記錄',
+    shape:getOptVal('poopShapePicker','稀水狀'),amount:getOptVal('poopAmountPicker','少'),
+    note:document.getElementById('poopNote').value});
+  save();renderTodayLogs();showToast('✅ 便便紀錄已儲存');
+  document.getElementById('poopNote').value='';
+  document.querySelectorAll('#poopColorPicker .color-dot-btn').forEach(b=>b.classList.remove('selected'));
+  selectedPoopColor='';
+}
+function addGrowth(){
+  const h=document.getElementById('growthHeight').value,w=document.getElementById('growthWeight').value;
+  if(!h&&!w){showToast('請輸入身高或體重');return;}
+  state.logs.push({type:'growth',date:document.getElementById('growthDate').value||todayStr(),height:h,weight:w,head:document.getElementById('growthHead').value});
+  save();renderTodayLogs();showToast('📏 成長紀錄已儲存');
+  ['growthHeight','growthWeight','growthHead'].forEach(id=>document.getElementById(id).value='');
+}
+function renderTodayLogs(){
+  const today=todayStr();
+  const logs=state.logs.filter(l=>l.date===today).sort((a,b)=>a.time>b.time?-1:1);
+  const container=document.getElementById('todayLogs'),chips=document.getElementById('summaryChips');
+  if(!logs.length){
+    container.innerHTML='<div style="text-align:center;padding:10px 0;color:var(--text-soft);font-size:13px;">今天還沒有紀錄</div>';
+    chips.innerHTML='<div class="summary-chip">尚無紀錄</div>';return;
+  }
+  const ml=logs.filter(l=>l.type==='milk'),pl=logs.filter(l=>l.type==='poop');
+  const totalCC=ml.reduce((a,b)=>a+(b.cc||0),0);
+  let sh='';
+  if(ml.length)sh+=`<div class="summary-chip">🍼 ${ml.length}次 · ${totalCC}cc</div>`;
+  if(pl.length)sh+=`<div class="summary-chip">💩 ${pl.length}次</div>`;
+  chips.innerHTML=sh||'<div class="summary-chip">記錄中</div>';
+  container.innerHTML=logs.map(l=>{
+    if(l.type==='milk')return`<div class="log-item"><div class="log-dot" style="background:var(--sage)"></div><div class="log-time">${l.time}</div><div class="log-content"><div class="log-title">🍼 ${l.milkType} ${l.cc}cc</div>${l.note?`<div class="log-detail">${l.note}</div>`:''}</div></div>`;
+    if(l.type==='poop')return`<div class="log-item"><div class="log-dot" style="background:var(--clay)"></div><div class="log-time">${l.time}</div><div class="log-content"><div class="log-title">💩 ${l.shape}・${l.color}・${l.amount}</div>${l.note?`<div class="log-detail">${l.note}</div>`:''}</div></div>`;
+    if(l.type==='growth')return`<div class="log-item"><div class="log-dot" style="background:var(--stone)"></div><div class="log-time">${l.date.slice(5)}</div><div class="log-content"><div class="log-title">📏 成長</div><div class="log-detail">${[l.height?'身高'+l.height+'cm':'',l.weight?'體重'+l.weight+'kg':'',l.head?'頭圍'+l.head+'cm':''].filter(Boolean).join('・')}</div></div></div>`;
+    return'';
+  }).join('');
+}
+
+// ── TREASURY PERSON ──
+let selectedTreasuryPerson='mom';
+function selectTreasuryPerson(p){
+  selectedTreasuryPerson=p;
+  document.getElementById('tpill-mom').className='treasury-person-pill'+(p==='mom'?' selected':'');
+  document.getElementById('tpill-dad').className='treasury-person-pill'+(p==='dad'?' selected':'');
+}
+
+// ── TREASURY ──
+let treasuryVisible=false;
+function toggleTreasury(){
+  treasuryVisible=!treasuryVisible;
+  const el=document.getElementById('treasuryAmt'),btn=document.getElementById('treasuryToggleBtn');
+  if(treasuryVisible){
+    el.textContent='$'+state.treasury.total.toLocaleString();
+    el.classList.remove('hidden');btn.textContent='隱藏';updateTreasuryStats(true);
+  } else {
+    el.textContent='● ● ● ● ●';
+    el.classList.add('hidden');btn.textContent='顯示';updateTreasuryStats(false);
+  }
+}
+function updateTreasuryStats(show){
+  document.getElementById('tMom').textContent=show?'$'+state.treasury.mom.toLocaleString():'●●●';
+  document.getElementById('tDad').textContent=show?'$'+state.treasury.dad.toLocaleString():'●●●';
+  document.getElementById('tTimes').textContent=state.treasury.records.length+'次';
+}
+function addToTreasury(){
+  const person=selectedTreasuryPerson,amt=+document.getElementById('tAmt').value;
+  if(!amt||amt<=0){showToast('請輸入存入金額');return;}
+  state.treasury.total+=amt;state.treasury[person]+=amt;
+  state.treasury.records.push({person,amt,date:todayStr()});
+  save();document.getElementById('tAmt').value='';
+  if(treasuryVisible){
+    document.getElementById('treasuryAmt').textContent='$'+state.treasury.total.toLocaleString();
+    updateTreasuryStats(true);
+  } else updateTreasuryStats(false);
+  showToast(person==='mom'?'🐣 媽媽存入成功！':'🐣 爸爸存入成功！');
+}
+
+// ── EXPENSE PERSON ──
+let selectedExpensePerson='mom';
+function selectExpensePerson(p){
+  selectedExpensePerson=p;
+  const mom=document.getElementById('pill-mom'),dad=document.getElementById('pill-dad');
+  mom.className='person-pill'+(p==='mom'?' selected-mom':'');
+  dad.className='person-pill'+(p==='dad'?' selected-dad':'');
+}
+
+// ── EXPENSES ──
+const catEmoji={尿布:'🧷',奶粉:'🍼',衣物:'👕',玩具:'🧸',醫療:'💊',孕期:'🤰',食品:'🥗',其他:'📦'};
+const catColors=['#7A5230','#6A8860','#A05030','#9B5C38','#B89050','#7A7060','#6B4520','#A08060'];
+let expenseFilter='both';
+function setExpensePerson(p,btn){
+  expenseFilter=p;
+  document.querySelectorAll('.expense-filter button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');renderExpenseList();
+}
+function openAddExpense(){
+  document.getElementById('expenseAmt').value='';
+  calcClear();
+  openModal('addExpenseModal');
+}
+function addExpense(){
+  const person=selectedExpensePerson;
+  const cat=document.getElementById('expenseCat').value;
+  const name=document.getElementById('expenseName').value||cat;
+  const amt=+document.getElementById('expenseAmt').value;
+  const date=document.getElementById('expenseDate').value||todayStr();
+  if(!amt){showToast('請輸入金額');return;}
+  state.expenses.push({person,cat,name,amt,date});
+  save();renderExpenseList();renderExpenseSummary();renderExpenseChart();
+  showToast('💰 花費已新增');closeModal('addExpenseModal');
+  document.getElementById('expenseName').value='';document.getElementById('expenseAmt').value='';
+  selectExpensePerson('mom');
+}
+function renderExpenseSummary(){
+  const total=state.expenses.reduce((a,b)=>a+b.amt,0);
+  const mom=state.expenses.filter(e=>e.person==='mom').reduce((a,b)=>a+b.amt,0);
+  const dad=state.expenses.filter(e=>e.person==='dad').reduce((a,b)=>a+b.amt,0);
+  document.getElementById('totalExpense').textContent='$'+total.toLocaleString();
+  document.getElementById('momExpense').textContent='$'+mom.toLocaleString();
+  document.getElementById('dadExpense').textContent='$'+dad.toLocaleString();
+}
+function renderExpenseList(){
+  const list=state.expenses.filter(e=>expenseFilter==='both'||e.person===expenseFilter).slice().reverse();
+  const el=document.getElementById('expenseList');
+  if(!list.length){el.innerHTML='<div style="text-align:center;padding:14px;color:var(--text-soft);font-size:13px;">尚無花費紀錄</div>';return;}
+  el.innerHTML=list.map(e=>`<div class="expense-item"><div class="expense-cat" style="background:${e.person==='mom'?'var(--clay-bg)':'var(--sage-bg)'}">${catEmoji[e.cat]||'📦'}</div><div class="expense-info"><div class="expense-name">${e.name}</div><div class="expense-date">${e.person==='mom'?'媽媽':'爸爸'} · ${e.cat} · ${e.date}</div></div><div class="expense-amount">$${e.amt.toLocaleString()}</div></div>`).join('');
+}
+let expChart=null;
+function renderExpenseChart(){
+  const cats={};state.expenses.forEach(e=>{cats[e.cat]=(cats[e.cat]||0)+e.amt;});
+  const labels=Object.keys(cats),data=Object.values(cats);
+  const colors=labels.map((_,i)=>catColors[i%catColors.length]);
+  const legend=document.getElementById('expenseLegend');
+  if(!labels.length){legend.innerHTML='';return;}
+  legend.innerHTML=labels.map((l,i)=>`<span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:${colors[i]};display:inline-block"></span>${l}</span>`).join('');
+  const ctx=document.getElementById('expenseChart');
+  if(expChart)expChart.destroy();
+  expChart=new Chart(ctx,{type:'doughnut',data:{labels,datasets:[{data,backgroundColor:colors,borderWidth:0}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` $${c.parsed.toLocaleString()}`}}},
+      cutout:'62%'}});
+}
+
+// ── CALCULATOR ──
+let calcCurr='0',calcPrev='',calcOper='',calcReset=false;
+function calcDisplay(){
+  const opMap={'+':'+','-':'−','*':'×','/':'÷'};
+  document.getElementById('calcNum').textContent=parseFloat(calcCurr).toLocaleString('zh-TW',{maximumFractionDigits:8});
+  document.getElementById('calcExpr').textContent=calcPrev&&calcOper?calcPrev+' '+(opMap[calcOper]||calcOper):'';
+}
+function calcNum(n){if(calcReset){calcCurr='0';calcReset=false;}if(n==='0'&&calcCurr==='0')return;calcCurr=calcCurr==='0'?n:calcCurr+n;calcDisplay();}
+function calcDot(){if(calcReset){calcCurr='0';calcReset=false;}if(!calcCurr.includes('.'))calcCurr+='.';calcDisplay();}
+function calcOp(op){if(calcPrev&&calcOper&&!calcReset)calcPrev=String(doCalc(+calcPrev,+calcCurr,calcOper));else calcPrev=calcCurr;calcOper=op;calcReset=true;calcDisplay();}
+function doCalc(a,b,op){if(op==='+')return Math.round((a+b)*100)/100;if(op==='-')return Math.round((a-b)*100)/100;if(op==='*')return Math.round(a*b*100)/100;if(op==='/')return b!==0?Math.round(a/b*100)/100:0;return b;}
+function calcEquals(){if(!calcOper||!calcPrev)return;calcCurr=String(doCalc(+calcPrev,+calcCurr,calcOper));calcPrev='';calcOper='';calcReset=true;calcDisplay();}
+function calcClear(){calcCurr='0';calcPrev='';calcOper='';calcReset=false;calcDisplay();}
+function calcBackspace(){
+  if(calcReset){calcCurr='0';calcReset=false;calcDisplay();return;}
+  if(calcCurr.length<=1||calcCurr==='-0'){calcCurr='0';}
+  else{calcCurr=calcCurr.slice(0,-1);}
+  calcDisplay();
+}
+function calcSign(){calcCurr=String(+calcCurr*-1);calcDisplay();}
+function calcPercent(){calcCurr=String(+calcCurr/100);calcDisplay();}
+function useCalcResult(){document.getElementById('expenseAmt').value=calcCurr==='0'?'':Math.round(+calcCurr);calcClear();closeModal('calcModal');showToast('✓ 金額已填入');}
+
+// ── EXAMS ──
+function addExam(){
+  const type=document.getElementById('examType').value,name=document.getElementById('examName').value,date=document.getElementById('examDate').value;
+  if(!name||!date){showToast('請填寫項目和日期');return;}
+  state.exams.push({type,name,date,place:document.getElementById('examPlace').value,result:document.getElementById('examResult').value});
+  save();renderExams();showToast('✓ 檢查紀錄已儲存');
+  ['examName','examDate','examPlace','examResult'].forEach(id=>document.getElementById(id).value='');
+}
+function renderExams(){
+  ['pregnancy','baby'].forEach(type=>{
+    const list=state.exams.filter(e=>e.type===type).slice().reverse();
+    const el=document.getElementById(type+'Exams');
+    if(!list.length){el.innerHTML='<div style="text-align:center;padding:10px;color:var(--text-soft);font-size:13px;">尚無紀錄</div>';return;}
+    el.innerHTML=list.map(e=>`<div class="exam-item"><div class="exam-dot" style="background:${type==='pregnancy'?'var(--clay)':'var(--sage)'}"></div><div><div class="exam-name">${e.name}</div><div class="exam-date">${e.date}${e.place?' · '+e.place:''}</div>${e.result?`<div class="exam-note">${e.result}</div>`:''}</div></div>`).join('');
+  });
+}
+
+// ── TODOS ──
+let todoCounter=10;
+function addTodo(){
+  const v=document.getElementById('todoInput').value.trim();if(!v)return;
+  const id='td'+(++todoCounter);
+  const item=document.createElement('div');item.className='check-item';item.id=id;
+  item.innerHTML=`<input type="checkbox" id="${id}-cb" onchange="toggleTodo('${id}')"><label for="${id}-cb">${v}</label>`;
+  document.getElementById('todoList').appendChild(item);
+  document.getElementById('todoInput').value='';
+}
+function toggleTodo(id){document.getElementById(id).classList.toggle('done');}
+
+// ── MEMO ──
+function addMemo(){
+  const title=document.getElementById('memoTitle').value.trim(),content=document.getElementById('memoContent').value.trim();
+  if(!content){showToast('請輸入內容');return;}
+  state.memos.push({title,content,date:todayStr()});
+  save();renderMemos();showToast('📝 備忘錄已儲存');
+  document.getElementById('memoTitle').value='';document.getElementById('memoContent').value='';
+}
+function renderMemos(){
+  const list=document.getElementById('memoList');
+  const memos=state.memos.slice().reverse();
+  const hint='<div class="memo-note"><div class="memo-title">💡 小提醒</div><div class="memo-body">這裡可以記下孕期的感受、寶寶成長的小故事，或給寶寶的第一封信 ✉️</div></div>';
+  if(!memos.length){list.innerHTML=hint;return;}
+  list.innerHTML=hint+memos.map(m=>`<div class="memo-note" style="background:var(--accent-bg);border-left-color:var(--accent)"><div class="memo-title" style="color:var(--accent)">${m.title||'無標題'} · <span style="font-weight:400;color:var(--text-soft)">${m.date}</span></div><div class="memo-body">${m.content.replace(/\n/g,'<br>')}</div></div>`).join('');
+}
+
+// ── DEFAULTS ──
+function setDefaults(){
+  const now=new Date(),timeStr=now.toTimeString().slice(0,5),dateStr=now.toISOString().slice(0,10);
+  ['milkTime','poopTime'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=timeStr;});
+  ['growthDate','expenseDate','examDate'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=dateStr;});
+  if(state.lmpDate)document.getElementById('lmpDate').value=state.lmpDate;
+  if(state.bornDate)document.getElementById('bornDate').value=state.bornDate;
+  if(state.bornTime)document.getElementById('bornTime').value=state.bornTime;
+  if(state.babyName)document.getElementById('babyName').value=state.babyName;
+}
+
+// ── INIT ──
+initDate();updateCounters();setDefaults();
+renderTodayLogs();renderExpenseSummary();renderExpenseList();
+renderExams();renderMemos();
+updateTreasuryStats(false);calcDisplay();
+selectExpensePerson('mom');
+selectTreasuryPerson('mom');
+</script>
+</body>
+</html>
