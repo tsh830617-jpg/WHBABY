@@ -44,7 +44,7 @@ body{font-family:'Noto Sans TC',sans-serif;background:#F5F0E8;color:var(--text);
 }
 
 /* HEADER */
-.header{background:var(--surface);border-bottom:1.5px solid var(--line);padding:16px 16px 12px;position:sticky;top:0;z-index:100;}
+.header{background:var(--surface);border-bottom:1.5px solid var(--line);padding:16px 16px 12px;position:sticky;top:0;z-index:10;}
 .header-top{display:flex;align-items:center;gap:12px;}
 .header-icon{width:42px;height:42px;background:var(--accent-bg);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .header-title{font-size:20px;font-weight:700;color:var(--text);font-family:'Noto Serif TC',serif;}
@@ -197,7 +197,8 @@ body{font-family:'Noto Sans TC',sans-serif;background:#F5F0E8;color:var(--text);
 .memo-note .memo-body{font-size:13px;color:var(--text);line-height:1.6;}
 
 /* MODAL */
-.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(20,10,2,0.5);z-index:300;align-items:flex-end;justify-content:center;}
+.modal-backdrop{display:none!important;position:fixed;inset:0;background:rgba(20,10,2,0.5);z-index:300;align-items:flex-end;justify-content:center;pointer-events:none;}
+.modal-backdrop.open{display:flex!important;pointer-events:auto;}
 .modal-backdrop.open{display:flex;}
 .modal{background:var(--surface);border-radius:var(--radius) var(--radius) 0 0;padding:18px;width:100%;max-width:500px;max-height:88vh;overflow-y:auto;}
 .modal-handle{width:36px;height:4px;border-radius:2px;background:var(--line);margin:0 auto 14px;}
@@ -668,7 +669,7 @@ function toggleSection(id){ document.getElementById(id).classList.toggle('open')
 function showToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2000); }
 function openModal(id){ document.getElementById(id).classList.add('open'); }
 function closeModal(id){ document.getElementById(id).classList.remove('open'); }
-document.querySelectorAll('.modal-backdrop').forEach(b=>b.addEventListener('click',e=>{ if(e.target===b) b.classList.remove('open'); }));
+document.querySelectorAll('.modal-backdrop').forEach(b=>b.addEventListener('click',function(e){ if(e.target===this) this.classList.remove('open'); }));
 
 // ── LMP / BORN ──
 function saveLMP(){ const v=document.getElementById('lmpDate').value; if(!v){showToast('請選擇日期');return;} state.lmpDate=v; save(); updateCounters(); closeModal('lmpModal'); showToast('✓ 已儲存'); }
