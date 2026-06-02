@@ -23,7 +23,7 @@
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 html{background:#F5F0E8;}
-body{font-family:'Noto Sans TC',sans-serif;background:#F5F0E8;color:var(--text);min-height:100vh;padding-bottom:calc(var(--tab-h) + env(safe-area-inset-bottom) + 20px);-webkit-text-size-adjust:100%;touch-action:pan-y;}
+body{font-family:'Noto Sans TC',sans-serif;background:#F5F0E8;color:var(--text);min-height:100vh;padding-bottom:calc(var(--tab-h) + env(safe-area-inset-bottom) + 20px);-webkit-text-size-adjust:100%;}
 @media (prefers-color-scheme: dark) {
   html, body, .card, .surface, .header, .bottom-nav, .modal,
   .rec-section-header, .rec-section-body, .form-input, .memo-textarea,
@@ -848,32 +848,7 @@ window.addEventListener('DOMContentLoaded',()=>{
     m.style.display='none';
   });
 
-  // Diagnostic: find what element is at center of screen
-  setTimeout(function(){
-    // Check element at center of screen
-    var x = window.innerWidth/2;
-    var y = window.innerHeight/2;
-    var el = document.elementFromPoint(x, y);
-    var info = el ? (el.tagName+' #'+el.id+' .'+el.className.replace(/ /g,'.')).slice(0,80) : 'null';
-    
-    // Also check all fixed/absolute elements covering screen
-    var blockers = [];
-    document.querySelectorAll('*').forEach(function(e){
-      var s = window.getComputedStyle(e);
-      var r = e.getBoundingClientRect();
-      if((s.position==='fixed'||s.position==='absolute') && 
-         r.width > 200 && r.height > 200 &&
-         r.left <= 0 && r.top <= 100 &&
-         s.display !== 'none' && s.visibility !== 'hidden') {
-        blockers.push(e.tagName+'#'+e.id+'.'+e.className.split(' ')[0]+'(z:'+s.zIndex+',pe:'+s.pointerEvents+')');
-      }
-    });
-    
-    var d=document.createElement('div');
-    d.style='position:fixed;top:0;left:0;right:0;background:orange;color:#000;padding:8px;font-size:10px;z-index:99999;word-break:break-all;';
-    d.textContent='CENTER:'+info+' | BLOCKERS:'+blockers.join(' / ');
-    document.body.appendChild(d);
-  }, 800);
+
 
   try {
     initDate();
