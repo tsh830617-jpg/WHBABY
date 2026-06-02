@@ -197,7 +197,8 @@ body{font-family:'Noto Sans TC',sans-serif;background:#F5F0E8;color:var(--text);
 .memo-note .memo-body{font-size:13px;color:var(--text);line-height:1.6;}
 
 /* MODAL */
-.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(20,10,2,0.5);z-index:300;align-items:flex-end;justify-content:center;}
+.modal-backdrop{display:none!important;position:fixed;inset:0;background:rgba(20,10,2,0.5);z-index:300;align-items:flex-end;justify-content:center;pointer-events:none;}
+.modal-backdrop.open{display:flex!important;pointer-events:auto;}
 .modal-backdrop.open{display:flex;}
 .modal{background:var(--surface);border-radius:var(--radius) var(--radius) 0 0;padding:18px;width:100%;max-width:500px;max-height:88vh;overflow-y:auto;}
 .modal-handle{width:36px;height:4px;border-radius:2px;background:var(--line);margin:0 auto 14px;}
@@ -225,7 +226,6 @@ body{font-family:'Noto Sans TC',sans-serif;background:#F5F0E8;color:var(--text);
 </head>
 <body>
 <div class="toast" id="toast"></div>
-<button id="testBtn" style="position:fixed;top:60px;right:10px;z-index:9999;background:#c00;color:#fff;padding:10px;border:none;border-radius:8px;font-size:14px;" onclick="alert('JS OK!')">測試</button>
 
 <!-- HEADER -->
 <div class="header">
@@ -669,7 +669,7 @@ function toggleSection(id){ document.getElementById(id).classList.toggle('open')
 function showToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2000); }
 function openModal(id){ document.getElementById(id).classList.add('open'); }
 function closeModal(id){ document.getElementById(id).classList.remove('open'); }
-document.querySelectorAll('.modal-backdrop').forEach(b=>b.addEventListener('click',e=>{ if(e.target===b) b.classList.remove('open'); }));
+document.querySelectorAll('.modal-backdrop').forEach(b=>b.addEventListener('click',function(e){ if(e.target===this) this.classList.remove('open'); }));
 
 // ── LMP / BORN ──
 function saveLMP(){ const v=document.getElementById('lmpDate').value; if(!v){showToast('請選擇日期');return;} state.lmpDate=v; save(); updateCounters(); closeModal('lmpModal'); showToast('✓ 已儲存'); }
@@ -842,13 +842,45 @@ function setDefaults(){
 
 // ── INIT ──
 window.addEventListener('DOMContentLoaded',()=>{
+  // Force ALL modal backdrops closed first
+  document.querySelectorAll('.modal-backdrop').forEach(function(m){
+    m.classList.remove('open');
+    m.style.display='none';
+  });
+
+  // Diagnostic: find what element is at center of screen
+  setTimeout(function(){
+    // Check element at center of screen
+    var x = window.innerWidth/2;
+    var y = window.innerHeight/2;
+    var el = document.elementFromPoint(x, y);
+    var info = el ? (el.tagName+' #'+el.id+' .'+el.className.replace(/ /g,'.')).slice(0,80) : 'null';
+    
+    // Also check all fixed/absolute elements covering screen
+    var blockers = [];
+    document.querySelectorAll('*').forEach(function(e){
+      var s = window.getComputedStyle(e);
+      var r = e.getBoundingClientRect();
+      if((s.position==='fixed'||s.position==='absolute') && 
+         r.width > 200 && r.height > 200 &&
+         r.left <= 0 && r.top <= 100 &&
+         s.display !== 'none' && s.visibility !== 'hidden') {
+        blockers.push(e.tagName+'#'+e.id+'.'+e.className.split(' ')[0]+'(z:'+s.zIndex+',pe:'+s.pointerEvents+')');
+      }
+    });
+    
+    var d=document.createElement('div');
+    d.style='position:fixed;top:0;left:0;right:0;background:orange;color:#000;padding:8px;font-size:10px;z-index:99999;word-break:break-all;';
+    d.textContent='CENTER:'+info+' | BLOCKERS:'+blockers.join(' / ');
+    document.body.appendChild(d);
+  }, 800);
+
   try {
     initDate();
     setDefaults();
     renderAll();
     updateTreasuryStats(false);
     calcDisplay();
-    // these elements are inside modals - safe to call
     try { selectExpensePerson('mom'); } catch(e){}
     try { selectTreasuryPerson('mom'); } catch(e){}
     loadData();
