@@ -23,10 +23,24 @@
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 html{background:#F5F0E8;}
-body{font-family:'Noto Sans TC',sans-serif;background:#F5F0E8;color:var(--text);min-height:100vh;padding-bottom:calc(var(--tab-h) + env(safe-area-inset-bottom));-webkit-text-size-adjust:100%;touch-action:pan-y;}
+body{font-family:'Noto Sans TC',sans-serif;background:#F5F0E8;color:var(--text);min-height:100vh;padding-bottom:calc(var(--tab-h) + env(safe-area-inset-bottom) + 20px);-webkit-text-size-adjust:100%;touch-action:pan-y;}
 @media (prefers-color-scheme: dark) {
-  html, body { background: #F5F0E8 !important; color: #2E1F0F !important; }
-  .card, .header, .bottom-nav, .modal, .rec-section-header, .rec-section-body { background: #FAF7F2 !important; }
+  html, body, .card, .surface, .header, .bottom-nav, .modal,
+  .rec-section-header, .rec-section-body, .form-input, .memo-textarea,
+  .calc-wrap, .calc-display, .calc-num-btn, .counter-box,
+  .summary-chip, .opt-chip, .cc-chip, .person-pill, .goto-record-btn,
+  .add-expense-btn, .expense-filter, .treasury-card, .memo-note {
+    background-color: initial !important;
+    color: initial !important;
+  }
+  html { background: #F5F0E8 !important; }
+  body { background: #F5F0E8 !important; color: #2E1F0F !important; }
+  .card, .rec-section-header, .rec-section-body, .modal { background: #FAF7F2 !important; }
+  .header { background: #FAF7F2 !important; }
+  .bottom-nav { background: #FAF7F2 !important; }
+  .form-input, .memo-textarea { background: #F5F0E8 !important; color: #2E1F0F !important; }
+  .counter-box { background: #EDE3D5 !important; }
+  .summary-chip, .cc-chip { background: #EDE3D5 !important; color: #7A5230 !important; }
 }
 
 /* HEADER */
@@ -46,7 +60,7 @@ body{font-family:'Noto Sans TC',sans-serif;background:#F5F0E8;color:var(--text);
 .tab-btn span{font-weight:500;}
 
 /* PAGES */
-.page{display:none;padding:14px;}
+.page{display:none;padding:14px;position:relative;z-index:1;}
 .page.active{display:block;animation:fadeIn 0.2s ease;}
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 
@@ -698,7 +712,7 @@ function renderTodayLogs(){
 
 // ── TREASURY ──
 let treasuryVisible=false, _tPerson='mom';
-function selectTreasuryPerson(p){ _tPerson=p; document.getElementById('tpill-mom').className='treasury-person-pill'+(p==='mom'?' selected':''); document.getElementById('tpill-dad').className='treasury-person-pill'+(p==='dad'?' selected':''); }
+function selectTreasuryPerson(p){ _tPerson=p; const m=document.getElementById('tpill-mom'),d=document.getElementById('tpill-dad'); if(m)m.className='treasury-person-pill'+(p==='mom'?' selected':''); if(d)d.className='treasury-person-pill'+(p==='dad'?' selected':''); }
 function toggleTreasury(){
   treasuryVisible=!treasuryVisible;
   const el=document.getElementById('treasuryAmt'),btn=document.getElementById('treasuryToggleBtn');
@@ -712,7 +726,7 @@ function addToTreasury(){ const amt=+document.getElementById('tAmt').value; if(!
 const CEMOJI={尿布:'🧷',奶粉:'🍼',衣物:'👕',玩具:'🧸',醫療:'💊',孕期:'🤰',食品:'🥗',其他:'📦'};
 const CCOLORS=['#7A5230','#6A8860','#A05030','#9B5C38','#B89050','#7A7060','#6B4520','#A08060'];
 let _expFilter='both', _expPerson='mom';
-function selectExpensePerson(p){ _expPerson=p; document.getElementById('pill-mom').className='person-pill'+(p==='mom'?' selected-mom':''); document.getElementById('pill-dad').className='person-pill'+(p==='dad'?' selected-dad':''); }
+function selectExpensePerson(p){ _expPerson=p; const m=document.getElementById('pill-mom'),d=document.getElementById('pill-dad'); if(m)m.className='person-pill'+(p==='mom'?' selected-mom':''); if(d)d.className='person-pill'+(p==='dad'?' selected-dad':''); }
 function setExpensePerson(p,btn){ _expFilter=p; document.querySelectorAll('.expense-filter button').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); renderExpenseList(); }
 function openAddExpense(){ document.getElementById('expenseAmt').value=''; calcClear(); openModal('addExpenseModal'); }
 function addExpense(){
@@ -814,10 +828,19 @@ function setDefaults(){
 
 // ── INIT ──
 window.addEventListener('DOMContentLoaded',()=>{
-  initDate(); setDefaults(); renderAll();
-  updateTreasuryStats(false); calcDisplay();
-  selectExpensePerson('mom'); selectTreasuryPerson('mom');
-  loadData();
+  try {
+    initDate();
+    setDefaults();
+    renderAll();
+    updateTreasuryStats(false);
+    calcDisplay();
+    // these elements are inside modals - safe to call
+    try { selectExpensePerson('mom'); } catch(e){}
+    try { selectTreasuryPerson('mom'); } catch(e){}
+    loadData();
+  } catch(e) {
+    console.error('Init error:', e);
+  }
 });
 </script>
 </body>
